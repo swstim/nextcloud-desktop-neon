@@ -227,6 +227,11 @@ void OpenVFS::startImpl(const VfsSetupParams &params)
         pparams.prepend(u"-d"_s);
     }
 
+    // Enable access to mount from other users (fuse mount option allow_user); user_allow_user must also be uncommented in /etc/fuse.conf.
+    if (qEnvironmentVariableIntValue("OPENCLOUD_OPENVFS_FUSE_ALLOW_USER") == 1) {
+        pparams.prepend(u"-p"_s);
+    }
+
     qCDebug(lcOpenVFS) << "Starting openvfs" << openVFSExePath().toString() << pparams;
     _openVfsProcess->start(openVFSExePath().toString(), pparams, QIODevice::ReadOnly);
 }

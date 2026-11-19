@@ -9,8 +9,25 @@ if (NOT WIN32)
             URL "https://github.com/opencloud-eu/openvfs/")
 
     if(TARGET OpenVFS::OpenVFS)
-        get_target_property (OPEN_VFS_CONFIG OpenVFS::OpenVFS IMPORTED_CONFIGURATIONS)
-        get_target_property (OPEN_VFS_PATH OpenVFS::OpenVFS IMPORTED_LOCATION_${OPEN_VFS_CONFIG})
+        get_target_property(OPEN_VFS_CONFIGS OpenVFS::OpenVFS IMPORTED_CONFIGURATIONS)
+        string(TOUPPER "${CMAKE_BUILD_TYPE}" _UPPER_BUILD_TYPE)
+        # Match, in priority order - CMAKE_BUILD_TYPE, RELEASE, RELWITHDEBINFO, whatever's left (DEBUG)
+        if(_UPPER_BUILD_TYPE AND "${_UPPER_BUILD_TYPE}" IN_LIST OPEN_VFS_CONFIGS)
+            set(OPEN_VFS_CONFIG "${_UPPER_BUILD_TYPE}")
+        elseif("RELEASE" IN_LIST OPEN_VFS_CONFIGS)
+            set(OPEN_VFS_CONFIG "RELEASE")
+        elseif("RELWITHDEBINFO" IN_LIST OPEN_VFS_CONFIGS)
+            set(OPEN_VFS_CONFIG "RELWITHDEBINFO")
+        elseif(OPEN_VFS_CONFIGS)
+            list(GET OPEN_VFS_CONFIGS 0 OPEN_VFS_CONFIG)
+        endif()
+
+        if(OPEN_VFS_CONFIG)
+            get_target_property(OPEN_VFS_PATH OpenVFS::OpenVFS IMPORTED_LOCATION_${OPEN_VFS_CONFIG})
+        else()
+            get_target_property(OPEN_VFS_PATH OpenVFS::OpenVFS IMPORTED_LOCATION)
+        endif()
+
         message(STATUS "Using OpenVFS ${OPEN_VFS_CONFIG} (${OPEN_VFS_PATH})")
 
         set(vfs_openvfs_SRCS
